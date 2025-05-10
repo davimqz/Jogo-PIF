@@ -5,6 +5,11 @@
 #include "keyboard.h"
 #include "timer.h"
 
+#define GROUND_Y 20
+#define JUMP_HEIGHT 5
+#define GRAVITY 1
+#define OBSTACLE_SPEED 2
+
 typedef struct {
     int x, y;
     int isJumping;
@@ -13,6 +18,27 @@ typedef struct {
 
 typedef struct {
     int x, y;
-    int acitive;
+    int active;
 } Obstacle;
+
+Player player = {10, GROUND_Y, 0, 0};
+Obstacle obstacles[3] = {0};
+
+int score = 0;
+int gameOver = 0;
+
+void initGame () {
+    srand(time(NULL));
+    player.x = 10;
+    player.y = GROUND_Y;
+    player.isJumping = 0;
+    player.jumpVelocity = 0;
+
+    for (int i = 0; i < 3; i++) {
+        obstacles[i].active = 0;
+    }
+    score = 0;
+    gameOver = 0;
+}
+
 
