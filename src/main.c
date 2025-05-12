@@ -70,6 +70,19 @@ void drawGround () {
     }
 }
 
+void updatePlayer () {
+    if (player.isJumping) {
+        player.y -= player.jumpVelocity;
+        player.jumpVelocity -= GRAVITY;
+
+        if(player.y >= GROUND_Y) {
+            player.y = GROUND_Y;
+            player.isJumping = 0;
+            player.jumpVelocity = 0;
+        } 
+    }
+}
+
 
 int main () {
     screenInit(1);
