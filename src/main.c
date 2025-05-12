@@ -83,6 +83,19 @@ void updatePlayer () {
     }
 }
 
+void updateObstacles () {
+    for (int i = 0; i < 3; i++) {
+        if(obstacles[i].active) {
+            obstacles[i].x -= OBSTACLE_SPEED;
+
+            if(obstacles[i].x < MINX) {
+                obstacles[i].active = 0;
+                score++;
+            } 
+        }
+    }
+}
+
 
 int main () {
     screenInit(1);
