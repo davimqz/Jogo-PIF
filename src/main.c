@@ -47,7 +47,18 @@ void drawPlayer () {
     printf("🦖");
 }
 
+void drawObstacle (Obstacle *obstacle) {
+    if (obstacle->active) {
+        screenSetColor(RED, DARKGRAY);
+        screenGotoxy(obstacle->x, obstacle->y);
+        printf("🌵");
+    }
+}
 
+int main () {
+    screenInit(1);
+    initGame();
+}
 
 
 
