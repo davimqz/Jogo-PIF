@@ -55,6 +55,14 @@ void drawObstacle (Obstacle *obstacle) {
     }
 }
 
+void drawScore () {
+    screenSetColor(YELLOW, DARKGRAY);
+    screenGotoxy(MAXX - 20, MINY + 1);
+    printf("Score: %d", score);
+
+}
+
+
 int main () {
     screenInit(1);
     initGame();
