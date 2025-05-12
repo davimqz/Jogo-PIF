@@ -41,4 +41,15 @@ void initGame () {
     gameOver = 0;
 }
 
+void drawPlayer () {
+    screenSetColor(CYAN, DARKGRAY);
+    screenGotoxy(player.x, player.y);
+    printf("🦖");
+}
+
+
+
+
+
+
 
