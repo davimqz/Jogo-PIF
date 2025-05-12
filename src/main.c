@@ -62,6 +62,14 @@ void drawScore () {
 
 }
 
+void drawGround () {
+    screnSetColor(GREEN, DARKGRAY);
+    for (int x = MINX; x <= MAXX; x++) {
+        screenGotoxy(x, GROUND_Y + 1);
+        printf("_");
+    }
+}
+
 
 int main () {
     screenInit(1);
