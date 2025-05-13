@@ -9,6 +9,7 @@
 #define JUMP_HEIGHT 5
 #define GRAVITY 1
 #define OBSTACLE_SPEED 2
+#define FRAME_INTERVAL 100
 
 typedef struct {
     int x, y;
@@ -106,6 +107,7 @@ void checkColision () {
             return 1;
         }
     }
+    return 0;
 }
 
 int main () {
