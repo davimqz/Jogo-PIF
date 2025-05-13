@@ -64,7 +64,7 @@ void drawScore () {
 }
 
 void drawGround () {
-    screnSetColor(GREEN, DARKGRAY);
+    screenSetColor(GREEN, DARKGRAY);
     for (int x = MINX; x <= MAXX; x++) {
         screenGotoxy(x, GROUND_Y + 1);
         printf("_");
@@ -145,6 +145,16 @@ int main () {
             }
         }
     }
+
+    screenSetColor(RED, DARKGRAY);
+    screenGotoxy(MAXX/2 - 5, GROUND_Y/2);
+    printf("Game Over");
+    screenUpdate();
+    timerDestroy();
+    keyboardDestroy();
+    screenDestroy();
+
+    return 0;
 }
 
 
