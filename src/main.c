@@ -103,7 +103,7 @@ void updateObstacles () {
 
 void checkColision () {
     for (int i = 0; i < 3; i++) {
-        if (obstacles[i].active && player.x == obstacles[i].x && player.y == obstacles[i].y) {
+        if (obstacles[i].active && obstacles[i].x == player.x && obstacles[i].y == player.y) {
             return 1;
         }
     }
@@ -115,6 +115,36 @@ int main () {
     keyboardInit();
     timerInit(FRAME_INTERVAL);
     initGame();
+
+    while (!gameOver) {
+        if (keyhit()) {
+            char ch = readch();
+            if (ch == ' ' && !player.isJumping) {
+                player.isJumping = 1;
+                player.jumpVelocity = JUMP_HEIGHT;
+            } else if (ch == 27) {
+                break;
+            } 
+        }
+
+        if (timerTimeOver()) {
+            screenClear();
+            updatePlayer();
+            updateObstacles();
+            drawGround();
+            drawPlayer();
+
+            for (int i = 0; i < 3; i++) {
+                drawObstacle(&obstacles[i]);
+                drawScore();
+                screenUpdate();
+            }
+
+            if (checkColision()) {
+                gameOver = 1;
+            }
+        }
+    }
 }
 
 
