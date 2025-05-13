@@ -92,10 +92,21 @@ void updateObstacles () {
                 obstacles[i].active = 0;
                 score++;
             } 
+        } else if (rand() % 100 < 5) {
+            obstacles[i].x = MAXX - 1;
+            obstacles[i].y = GROUND_Y;
+            obstacles[i].active = 1;
         }
     }
 }
 
+void checkColision () {
+    for (int i = 0; i < 3; i++) {
+        if (obstacles[i].active && player.x == obstacles[i].x && player.y == obstacles[i].y) {
+            return 1;
+        }
+    }
+}
 
 int main () {
     screenInit(1);
