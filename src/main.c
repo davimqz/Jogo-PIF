@@ -101,7 +101,7 @@ void updateObstacles () {
     }
 }
 
-void checkColision () {
+int checkColision () {
     for (int i = 0; i < 3; i++) {
         if (obstacles[i].active && obstacles[i].x == player.x && obstacles[i].y == player.y) {
             return 1;
