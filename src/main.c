@@ -136,9 +136,9 @@ int main () {
 
             for (int i = 0; i < 3; i++) {
                 drawObstacle(&obstacles[i]);
-                drawScore();
-                screenUpdate();
             }
+            drawScore();
+            screenUpdate();
 
             if (checkCollision()) {
                 gameOver = 1;
