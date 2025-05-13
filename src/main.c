@@ -6,7 +6,7 @@
 #include "timer.h"
 
 #define GROUND_Y 20
-#define JUMP_HEIGHT 5
+#define JUMP_HEIGHT 2
 #define GRAVITY 1
 #define OBSTACLE_SPEED 2
 #define FRAME_INTERVAL 100
