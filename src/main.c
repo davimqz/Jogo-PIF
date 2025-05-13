@@ -112,6 +112,8 @@ void checkColision () {
 
 int main () {
     screenInit(1);
+    keyboardInit();
+    timerInit(FRAME_INTERVAL);
     initGame();
 }
 
