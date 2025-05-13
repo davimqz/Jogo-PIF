@@ -101,7 +101,7 @@ void updateObstacles () {
     }
 }
 
-int checkColision () {
+int checkCollision () {
     for (int i = 0; i < 3; i++) {
         if (obstacles[i].active && obstacles[i].x == player.x && obstacles[i].y == player.y) {
             return 1;
@@ -140,7 +140,7 @@ int main () {
                 screenUpdate();
             }
 
-            if (checkColision()) {
+            if (checkCollision()) {
                 gameOver = 1;
             }
         }
