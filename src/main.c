@@ -121,7 +121,7 @@ int checkCollision () {
 void showAscii (const char *arquivo) {
     FILE *file = fopen(arquivo, "r");
 
-    if (arquivo == NULL) {
+    if (file == NULL) {
         printf("Arquivo nao encontrado!\n");
         return;
     }
