@@ -111,7 +111,7 @@ int checkCollision () {
     return 0;
 }
 
-void showMenu(const char *arquivo) {
+int showMenu(const char *arquivo) {
     FILE *menu = fopen(arquivo, "r");
 
     if (menu == NULL) {
@@ -119,22 +119,65 @@ void showMenu(const char *arquivo) {
         return;
     }
 
+    screenInit(1);
+
     char linha[256];
+    int y = MINY + 2;
+
     while (fgets(linha, sizeof(linha), menu)) {
         printf("%s", linha);
     }
 
     fclose(menu);
 
-    printf("/nPressione ENTER para começar o jogo....");
+    y += 2;
+
+    screenGotoxy((MAXX - 15)/ 2, y++);
+    printf("[1] Play");
+
+    screenGotoxy((MAXX - 20) / 2, y++);
+    printf("[2] Ver Topscores");
+
+    screenGotoxy((MAXX - 10) / 2, y++);
+    printf("[3] Sair");
+
+    y += 2;
+
+    printf("\nEscolha uma opcao: ");
+
+    int opcao = 0;
+
+    scanf("%d", &opcao);
 
     getchar();
+
+    return opcao;
+}
+
+void showTopScores(const char *arquivo) {
+    FILE *top = fopen(arquivo, "r");
+
+    if (top == NULL) {
+        printf("Erro ao abrir %s! \n", arquivo);
+        return;
+    }
+
+    char linha[100];
+
+    while (fgets(linha, sizeof(linha), top)) {
+        printf("%s", linha);
+    }
+
+    fclose(top);
+
 }
 
 int main () {
     showMenu("src/files/menu.txt");
 
+    int opcao = showMenu("src/files/menu.txt");
 
+   
     screenInit(1);
     keyboardInit();
     timerInit(FRAME_INTERVAL);
