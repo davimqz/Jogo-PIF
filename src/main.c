@@ -118,6 +118,24 @@ int checkCollision () {
     return 0;
 }
 
+void showAscii (const char *arquivo) {
+    FILE *file = fopen(arquivo, "r");
+
+    if (arquivo == NULL) {
+        printf("Arquivo nao encontrado!\n");
+        return;
+    }
+
+    char linha[256];
+
+    while (fgets(linha, sizeof(linha), file)) {
+        printf("%s", linha);
+    }
+
+    fclose(file);
+}
+
+
 
 
 
