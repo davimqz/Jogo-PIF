@@ -111,7 +111,30 @@ int checkCollision () {
     return 0;
 }
 
+void showMenu(const char *arquivo) {
+    FILE *menu = fopen(arquivo, "r");
+
+    if (menu == NULL) {
+        printf("Erro ao abrir %s! \n", arquivo);
+        return;
+    }
+
+    char linha[256];
+    while (fgets(linha, sizeof(linha), menu)) {
+        printf("%s", linha);
+    }
+
+    fclose(menu);
+
+    printf("/nPressione ENTER para começar o jogo....");
+
+    getchar();
+}
+
 int main () {
+    showMenu("src/files/menu.txt");
+
+
     screenInit(1);
     keyboardInit();
     timerInit(FRAME_INTERVAL);
