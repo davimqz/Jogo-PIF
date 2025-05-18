@@ -6,6 +6,7 @@
 #include "keyboard.h"
 #include "timer.h"
 
+
 #define GROUND_Y 20
 #define JUMP_HEIGHT 2
 #define GRAVITY 1
@@ -61,7 +62,13 @@ void drawScore () {
     screenSetColor(YELLOW, DARKGRAY);
     screenGotoxy(MAXX - 20, MINY + 1);
     printf("Score: %d", score);
+}
 
+int lives = 3;
+
+void drawLives() {
+    screnSetColor(WHITE, DARKGRAY);
+    screenGotoxy("Vidas: %d", lives);
 }
 
 void drawGround () {
