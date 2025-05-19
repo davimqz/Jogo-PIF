@@ -76,8 +76,9 @@ void drawScore () {
 
 
 void drawLives() {
-    screnSetColor(WHITE, DARKGRAY);
-    screenGotoxy("Vidas: %d", lives);
+    screenSetColor(WHITE, DARKGRAY);
+    screenGotoxy(23, 13);
+    printf("Vidas: %d", lives);
 }
 
 void drawGround () {
@@ -106,7 +107,7 @@ int showMenu(const char *arquivo) {
 
     if (file == NULL) {
         printf("Nao foi possivel abri o arquivo!\n");
-        return;
+        return 1;
     }
 
     char linha[256];
@@ -210,7 +211,7 @@ void saveScore (No *list, const char *arquivo) {
     FILE *file = fopen(arquivo, "a");
 
     while (list) {
-        fprintf("%s - %d pontos\n", list->nome, list->pontos);
+        fprintf(file, "%s - %d pontos\n", list->nome, list->pontos);
         list = list -> next;
     }
     fclose(file);
@@ -218,29 +219,43 @@ void saveScore (No *list, const char *arquivo) {
 
 int main () {
     char jogador[MAX_NOME];
+    int opcao;
 
-    printf("\nDigite o nome: ");
-
-    fgets(jogador, MAX_NOME, stdin);
-
+    do {
+        opcao = showMenu(ARQ_MENU);
+        if (opcao == 2) {
+            showTopScores(ARQ_TOPSCORES);
+            printf("\nPressione ENTER para voltar ao menu.");
+            getchar();
+        }
+    } while (opcao != 1 && opcao != 3);
     
+    if (opcao == 3) {
+        return 0;
+    }
 
-
+    printf("Digite o seu nome: ");
+    fgets(jogador, MAX_NOME, stdin);
+    jogador[strcspn(jogador, "\n")] = 0;
 
     screenInit(1);
     keyboardInit();
     timerInit(FRAME_INTERVAL);
+
     initGame();
 
-    while (!gameOver) {
+    while (lives > 0) {
         if (keyhit()) {
             char ch = readch();
+
             if (ch == ' ' && !player.isJumping) {
                 player.isJumping = 1;
                 player.jumpVelocity = JUMP_HEIGHT;
+            
+            //Tecla ESC
             } else if (ch == 27) {
                 break;
-            } 
+            }
         }
 
         if (timerTimeOver()) {
@@ -249,23 +264,33 @@ int main () {
             updateObstacles();
             drawGround();
             drawPlayer();
+            drawLives();
 
-            for (int i = 0; i < 3; i++) {
+            for (int  i = 0; i < 3; i++) {
                 drawObstacle(&obstacles[i]);
             }
+
             drawScore();
             screenUpdate();
 
             if (checkCollision()) {
-                gameOver = 1;
+                lives--;
+                screenUpdate();
+                drawScore();
             }
         }
     }
 
-    screenSetColor(RED, DARKGRAY);
+    screenClear();
+    showAscii(ARQ_DEATH);
     screenGotoxy(MAXX/2 - 5, GROUND_Y/2);
-    printf("Game Over");
+    printf("FIM DE JOGO - SCORE: %d", score);
     screenUpdate();
+
+    addScore(&scoreList, jogador, score);
+    saveScore(scoreList, ARQ_SCORES);
+
+    sleep(3);
     timerDestroy();
     keyboardDestroy();
     screenDestroy();
