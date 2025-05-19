@@ -42,7 +42,7 @@ int lives;
 void initGame () {
     srand(time(NULL));
     player.x = 10;
-    player.y = GROUND_Y;
+    player.y = GROUND_Y - 1;
     player.isJumping = 0;
     player.jumpVelocity = 0;
 
@@ -74,7 +74,6 @@ void drawScore () {
     printf("Score: %d", score);
 }
 
-int lives = 3;
 
 void drawLives() {
     screnSetColor(WHITE, DARKGRAY);
@@ -95,7 +94,7 @@ void updatePlayer () {
         player.jumpVelocity -= GRAVITY;
 
         if(player.y >= GROUND_Y) {
-            player.y = GROUND_Y;
+            player.y = GROUND_Y - 1;
             player.isJumping = 0;
             player.jumpVelocity = 0;
         } 
@@ -149,7 +148,7 @@ void updateObstacles () {
             } 
         } else if (rand() % 100 < 5) {
             obstacles[i].x = MAXX - 1;
-            obstacles[i].y = GROUND_Y;
+            obstacles[i].y = GROUND_Y - 1;
             obstacles[i].active = 1;
         }
     }
@@ -191,7 +190,21 @@ void showTopScores() {
     printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
 }
 
+typedef struct No {
+    char nome[MAX_NOME];
+    int pontos;
+    struct No *next;
+} No;
 
+No *scoreList = NULL;
+
+void addScore (No **list, const char *nome, int pontos) {
+    No *novo = malloc(sizeof(No));
+    strcpy(novo->nome, nome);
+    novo->pontos = pontos;
+    novo->next = *list;
+    *list = novo;
+}
 
 int main () {
     char jogador[MAX_NOME];
