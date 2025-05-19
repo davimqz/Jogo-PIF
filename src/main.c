@@ -33,6 +33,7 @@ Obstacle obstacles[3] = {0};
 
 int score = 0;
 int gameOver = 0;
+int lives = 3;
 
 void initGame () {
     srand(time(NULL));
@@ -94,6 +95,42 @@ void updatePlayer () {
             player.jumpVelocity = 0;
         } 
     }
+}
+
+int showMenu(const char *arquivo) {
+    FILE *file = fopen(arquivo, "r");
+
+    if (file == NULL) {
+        printf("Nao foi possivel abri o arquivo!\n");
+        return;
+    }
+
+    char linha[256];
+
+    while (fgets(linha, sizeof(linha), file)) {
+        printf("%s", linha);
+    }
+
+    fclose(file);
+
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+
+    printf("\n[1] - Start Game\n");
+    printf("\n[2] - Top Scores\n");
+    printf("\n[3] - Exit\n");
+
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+
+    int opcao;
+
+    printf("Escolha uma opcao: ");
+
+    scanf("%d", &opcao);
+
+    getchar();
+
+    return opcao;
+
 }
 
 void updateObstacles () {
