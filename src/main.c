@@ -5,6 +5,7 @@
 #include "screen.h"
 #include "keyboard.h"
 #include "timer.h"
+#include <unistd.h>
 
 
 #define GROUND_Y 20
@@ -114,9 +115,11 @@ void updateObstacles () {
 
 int checkCollision () {
     for (int i = 0; i < 3; i++) {
-        if (obstacles[i].active && obstacles[i].x == player.x && obstacles[i].y == player.y) {
-            return 1;
-        }
+        if (obstacles[i].active && 
+            abs(obstacles[i].x - player.x) <= 1 &&
+            abs(obstacles[i].y - player.y) <= 1) {
+                return 1;
+            }
     }
     return 0;
 }
