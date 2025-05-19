@@ -14,6 +14,10 @@
 #define OBSTACLE_SPEED 2
 #define FRAME_INTERVAL 100
 
+#define ARQ_WIN "src/files/win.txt"
+#define ARQ_DEATH "src/files/death.txt"
+#define ARQ_MENU "src/files/menu.txt"
+#define MAX_NOME 100
 #define ARQ_TOPSCORES "src/files/topscores.txt"
 #define ARQ_SCORES "src/files/score.txt"
 
@@ -31,9 +35,9 @@ typedef struct {
 Player player = {10, GROUND_Y, 0, 0};
 Obstacle obstacles[3] = {0};
 
-int score = 0;
-int gameOver = 0;
-int lives = 3;
+int score;
+int gameOver;
+int lives;
 
 void initGame () {
     srand(time(NULL));
@@ -47,6 +51,7 @@ void initGame () {
     }
     score = 0;
     gameOver = 0;
+    lives = 3;
 }
 
 void drawPlayer () {
@@ -189,6 +194,16 @@ void showTopScores() {
 
 
 int main () {
+    char jogador[MAX_NOME];
+
+    printf("\nDigite o nome: ");
+
+    fgets(jogador, MAX_NOME, stdin);
+
+    
+
+
+
     screenInit(1);
     keyboardInit();
     timerInit(FRAME_INTERVAL);
