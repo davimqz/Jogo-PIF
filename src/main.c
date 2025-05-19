@@ -5,12 +5,21 @@
 #include "screen.h"
 #include "keyboard.h"
 #include "timer.h"
+#include <unistd.h>
+
 
 #define GROUND_Y 20
 #define JUMP_HEIGHT 2
 #define GRAVITY 1
 #define OBSTACLE_SPEED 2
 #define FRAME_INTERVAL 100
+
+#define ARQ_WIN "src/files/win.txt"
+#define ARQ_DEATH "src/files/death.txt"
+#define ARQ_MENU "src/files/menu.txt"
+#define MAX_NOME 100
+#define ARQ_TOPSCORES "src/files/topscores.txt"
+#define ARQ_SCORES "src/files/score.txt"
 
 typedef struct {
     int x, y;
@@ -26,13 +35,14 @@ typedef struct {
 Player player = {10, GROUND_Y, 0, 0};
 Obstacle obstacles[3] = {0};
 
-int score = 0;
-int gameOver = 0;
+int score;
+int gameOver;
+int lives;
 
 void initGame () {
     srand(time(NULL));
     player.x = 10;
-    player.y = GROUND_Y;
+    player.y = GROUND_Y - 1;
     player.isJumping = 0;
     player.jumpVelocity = 0;
 
@@ -41,6 +51,7 @@ void initGame () {
     }
     score = 0;
     gameOver = 0;
+    lives = 3;
 }
 
 void drawPlayer () {
@@ -61,7 +72,13 @@ void drawScore () {
     screenSetColor(YELLOW, DARKGRAY);
     screenGotoxy(MAXX - 20, MINY + 1);
     printf("Score: %d", score);
+}
 
+
+void drawLives() {
+    screenSetColor(WHITE, DARKGRAY);
+    screenGotoxy(23, 13);
+    printf("Vidas: %d", lives);
 }
 
 void drawGround () {
@@ -78,11 +95,47 @@ void updatePlayer () {
         player.jumpVelocity -= GRAVITY;
 
         if(player.y >= GROUND_Y) {
-            player.y = GROUND_Y;
+            player.y = GROUND_Y - 1;
             player.isJumping = 0;
             player.jumpVelocity = 0;
         } 
     }
+}
+
+int showMenu(const char *arquivo) {
+    FILE *file = fopen(arquivo, "r");
+
+    if (file == NULL) {
+        printf("Nao foi possivel abri o arquivo!\n");
+        return 1;
+    }
+
+    char linha[256];
+
+    while (fgets(linha, sizeof(linha), file)) {
+        printf("%s", linha);
+    }
+
+    fclose(file);
+
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+
+    printf("\n[1] - Start Game\n");
+    printf("\n[2] - Top Scores\n");
+    printf("\n[3] - Exit\n");
+
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+
+    int opcao;
+
+    printf("Escolha uma opcao: ");
+
+    scanf("%d", &opcao);
+
+    getchar();
+
+    return opcao;
+
 }
 
 void updateObstacles () {
@@ -96,7 +149,7 @@ void updateObstacles () {
             } 
         } else if (rand() % 100 < 5) {
             obstacles[i].x = MAXX - 1;
-            obstacles[i].y = GROUND_Y;
+            obstacles[i].y = GROUND_Y - 1;
             obstacles[i].active = 1;
         }
     }
@@ -104,94 +157,105 @@ void updateObstacles () {
 
 int checkCollision () {
     for (int i = 0; i < 3; i++) {
-        if (obstacles[i].active && obstacles[i].x == player.x && obstacles[i].y == player.y) {
-            return 1;
-        }
+        if (obstacles[i].active && 
+            abs(obstacles[i].x - player.x) <= 1 &&
+            abs(obstacles[i].y - player.y) <= 1) {
+                return 1;
+            }
     }
     return 0;
 }
 
-int showMenu(const char *arquivo) {
-    FILE *menu = fopen(arquivo, "r");
+void showAscii (const char *arquivo) {
+    FILE *file = fopen(arquivo, "r");
 
-    if (menu == NULL) {
-        printf("Erro ao abrir %s! \n", arquivo);
+    if (file == NULL) {
+        printf("Arquivo nao encontrado!\n");
         return;
     }
-
-    screenInit(1);
 
     char linha[256];
-    int y = MINY + 2;
 
-    while (fgets(linha, sizeof(linha), menu)) {
+    while (fgets(linha, sizeof(linha), file)) {
         printf("%s", linha);
     }
 
-    fclose(menu);
-
-    y += 2;
-
-    screenGotoxy((MAXX - 15)/ 2, y++);
-    printf("[1] Play");
-
-    screenGotoxy((MAXX - 20) / 2, y++);
-    printf("[2] Ver Topscores");
-
-    screenGotoxy((MAXX - 10) / 2, y++);
-    printf("[3] Sair");
-
-    y += 2;
-
-    printf("\nEscolha uma opcao: ");
-
-    int opcao = 0;
-
-    scanf("%d", &opcao);
-
-    getchar();
-
-    return opcao;
+    fclose(file);
 }
 
-void showTopScores(const char *arquivo) {
-    FILE *top = fopen(arquivo, "r");
+void showTopScores() {
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+    showAscii(ARQ_TOPSCORES);
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+    showAscii(ARQ_SCORES);
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+}
 
-    if (top == NULL) {
-        printf("Erro ao abrir %s! \n", arquivo);
-        return;
+typedef struct No {
+    char nome[MAX_NOME];
+    int pontos;
+    struct No *next;
+} No;
+
+No *scoreList = NULL;
+
+void addScore (No **list, const char *nome, int pontos) {
+    No *novo = malloc(sizeof(No));
+    strcpy(novo->nome, nome);
+    novo->pontos = pontos;
+    novo->next = *list;
+    *list = novo;
+}
+
+void saveScore (No *list, const char *arquivo) {
+    FILE *file = fopen(arquivo, "a");
+
+    while (list) {
+        fprintf(file, "%s - %d pontos\n", list->nome, list->pontos);
+        list = list -> next;
     }
-
-    char linha[100];
-
-    while (fgets(linha, sizeof(linha), top)) {
-        printf("%s", linha);
-    }
-
-    fclose(top);
-
+    fclose(file);
 }
 
 int main () {
-    showMenu("src/files/menu.txt");
+    char jogador[MAX_NOME];
+    int opcao;
 
-    int opcao = showMenu("src/files/menu.txt");
+    do {
+        opcao = showMenu(ARQ_MENU);
+        if (opcao == 2) {
+            showTopScores(ARQ_TOPSCORES);
+            printf("\nPressione ENTER para voltar ao menu.");
+            getchar();
+        }
+    } while (opcao != 1 && opcao != 3);
+    
+    if (opcao == 3) {
+        return 0;
+    }
 
-   
+    printf("Digite o seu nome: ");
+    fgets(jogador, MAX_NOME, stdin);
+    jogador[strcspn(jogador, "\n")] = 0;
+
     screenInit(1);
     keyboardInit();
     timerInit(FRAME_INTERVAL);
+
     initGame();
 
-    while (!gameOver) {
+    while (lives > 0) {
         if (keyhit()) {
             char ch = readch();
+
             if (ch == ' ' && !player.isJumping) {
                 player.isJumping = 1;
                 player.jumpVelocity = JUMP_HEIGHT;
+            
+            //Tecla ESC
             } else if (ch == 27) {
                 break;
-            } 
+            }
         }
 
         if (timerTimeOver()) {
@@ -200,23 +264,33 @@ int main () {
             updateObstacles();
             drawGround();
             drawPlayer();
+            drawLives();
 
-            for (int i = 0; i < 3; i++) {
+            for (int  i = 0; i < 3; i++) {
                 drawObstacle(&obstacles[i]);
             }
+
             drawScore();
             screenUpdate();
 
             if (checkCollision()) {
-                gameOver = 1;
+                lives--;
+                screenUpdate();
+                drawScore();
             }
         }
     }
 
-    screenSetColor(RED, DARKGRAY);
+    screenClear();
+    showAscii(ARQ_DEATH);
     screenGotoxy(MAXX/2 - 5, GROUND_Y/2);
-    printf("Game Over");
+    printf("FIM DE JOGO - SCORE: %d", score);
     screenUpdate();
+
+    addScore(&scoreList, jogador, score);
+    saveScore(scoreList, ARQ_SCORES);
+
+    sleep(3);
     timerDestroy();
     keyboardDestroy();
     screenDestroy();
