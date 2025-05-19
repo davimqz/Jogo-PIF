@@ -13,6 +13,9 @@
 #define OBSTACLE_SPEED 2
 #define FRAME_INTERVAL 100
 
+#define ARQ_TOPSCORES "src/files/topscores.txt"
+#define ARQ_SCORES "src/files/score.txt"
+
 typedef struct {
     int x, y;
     int isJumping;
@@ -135,8 +138,13 @@ void showAscii (const char *arquivo) {
     fclose(file);
 }
 
-
-
+void showTopScores() {
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+    showAscii(ARQ_TOPSCORES);
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+    showAscii(ARQ_SCORES);
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+}
 
 
 
