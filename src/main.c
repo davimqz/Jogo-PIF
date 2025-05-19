@@ -206,6 +206,16 @@ void addScore (No **list, const char *nome, int pontos) {
     *list = novo;
 }
 
+void saveScore (No *list, const char *arquivo) {
+    FILE *file = fopen(arquivo, "a");
+
+    while (list) {
+        fprintf("%s - %d pontos\n", list->nome, list->pontos);
+        list = list -> next;
+    }
+    fclose(file);
+}
+
 int main () {
     char jogador[MAX_NOME];
 
