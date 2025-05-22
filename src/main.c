@@ -84,7 +84,7 @@ void drawLives() {
 void drawGround () {
     screenSetColor(GREEN, DARKGRAY);
     for (int x = MINX; x <= MAXX; x++) {
-        screenGotoxy(x, GROUND_Y + 1);
+        screenGotoxy(x, GROUND_Y - 1);
         printf("_");
     }
 }
