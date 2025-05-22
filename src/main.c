@@ -32,6 +32,7 @@ typedef struct {
     int active;
 } Obstacle;
 
+
 Player player = {10, GROUND_Y, 0, 0};
 Obstacle obstacles[3] = {0};
 
@@ -39,20 +40,8 @@ int score;
 int gameOver;
 int lives;
 
-void initGame () {
-    srand(time(NULL));
-    player.x = 10;
-    player.y = GROUND_Y - 1;
-    player.isJumping = 0;
-    player.jumpVelocity = 0;
 
-    for (int i = 0; i < 3; i++) {
-        obstacles[i].active = 0;
-    }
-    score = 0;
-    gameOver = 0;
-    lives = 3;
-}
+
 
 void drawPlayer () {
     screenSetColor(CYAN, DARKGRAY);
@@ -67,6 +56,7 @@ void drawObstacle (Obstacle *obstacle) {
         printf("🌵");
     }
 }
+
 
 void drawScore () {
     screenSetColor(YELLOW, DARKGRAY);
@@ -89,17 +79,110 @@ void drawGround () {
     }
 }
 
-void updatePlayer () {
-    if (player.isJumping) {
-        player.y -= player.jumpVelocity;
-        player.jumpVelocity -= GRAVITY;
+typedef struct No {
+    char nome[MAX_NOME];
+    int pontos;
+    struct No *next;
+} No;
 
-        if(player.y >= GROUND_Y) {
-            player.y = GROUND_Y - 1;
-            player.isJumping = 0;
-            player.jumpVelocity = 0;
-        } 
+No *scoreList = NULL;
+
+No *readScores(const char *arquivo) {
+    FILE *file = fopen(arquivo, "r");
+    if (!file) {
+       return NULL; 
+    } 
+
+    No *head = NULL;
+    char nome[MAX_NOME];
+    int pontos;
+
+    while (fscanf(file, " %[^-] - %d pontos\n", nome, &pontos) == 2) {
+        No *novo = malloc(sizeof(No));
+        strcpy(novo->nome, nome);
+        novo->pontos = pontos;
+        novo->next = head;
+        head = novo;
     }
+
+    fclose(file);
+    return head;
+}
+
+void addPlayerScore(No **head, const char *nome, int pontos) {
+    No *novo = malloc(sizeof(No));
+    strcpy(novo->nome, nome);
+    novo->pontos = pontos;
+    novo->next = *head;
+    *head = novo;
+}
+
+void bubbleSort(No **head) {
+    if (!head || !*head){
+        return;
+    }
+
+    int trocou;
+    do {
+        trocou = 0;
+        No **index = head;
+        while ((*index)->next) {
+            No *primeiro = *index;
+            No *segundo = primeiro->next;
+            if (primeiro->pontos < segundo->pontos) {
+                primeiro->next = segundo->next;
+                segundo->next = primeiro;
+                *index = segundo;
+                trocou = 1;
+            }
+            index = &(*index)->next;
+        }
+    } while (trocou);
+}
+
+void saveListIntoFile(No *head, const char *arquivo) {
+    FILE *file = fopen(arquivo, "w");
+    if (!file){
+        return;
+    }
+
+    while (head) {
+        fprintf(file, "%s - %d pontos\n", head->nome, head->pontos);
+        head = head->next;
+    }
+
+    fclose(file);
+}
+
+void saveNewScore(const char *arquivo, const char *nomeJogador, int pontos) {
+    No *lista = readScores(arquivo);
+    addPlayerScore(&lista, nomeJogador, pontos);
+    bubbleSort(&lista);
+    saveListIntoFile(lista, arquivo);
+
+    while (lista) {
+        No *temp = lista;
+        lista = lista->next;
+        free(temp);
+    }
+}
+
+
+void showAscii (const char *arquivo) {
+    FILE *file = fopen(arquivo, "r");
+
+    if (file == NULL) {
+        printf("Arquivo nao encontrado!\n");
+        return;
+    }
+
+    char linha[256];
+
+    while (fgets(linha, sizeof(linha), file)) {
+        printf("%s", linha);
+    }
+
+    fclose(file);
 }
 
 int showMenu(const char *arquivo) {
@@ -138,6 +221,43 @@ int showMenu(const char *arquivo) {
 
 }
 
+void showTopScores() {
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+    showAscii(ARQ_TOPSCORES);
+    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+}
+
+void initGame () {
+    srand(time(NULL));
+    player.x = 10;
+    player.y = GROUND_Y - 1;
+    player.isJumping = 0;
+    player.jumpVelocity = 0;
+
+    for (int i = 0; i < 3; i++) {
+        obstacles[i].active = 0;
+    }
+    score = 0;
+    gameOver = 0;
+    lives = 3;
+}
+
+
+
+void updatePlayer () {
+    if (player.isJumping) {
+        player.y -= player.jumpVelocity;
+        player.jumpVelocity -= GRAVITY;
+
+        if(player.y >= GROUND_Y) {
+            player.y = GROUND_Y - 1;
+            player.isJumping = 0;
+            player.jumpVelocity = 0;
+        } 
+    }
+}
+
+
 void updateObstacles () {
     for (int i = 0; i < 3; i++) {
         if(obstacles[i].active) {
@@ -155,6 +275,8 @@ void updateObstacles () {
     }
 }
 
+
+
 int checkCollision () {
     for (int i = 0; i < 3; i++) {
         if (obstacles[i].active && 
@@ -166,57 +288,6 @@ int checkCollision () {
     return 0;
 }
 
-void showAscii (const char *arquivo) {
-    FILE *file = fopen(arquivo, "r");
-
-    if (file == NULL) {
-        printf("Arquivo nao encontrado!\n");
-        return;
-    }
-
-    char linha[256];
-
-    while (fgets(linha, sizeof(linha), file)) {
-        printf("%s", linha);
-    }
-
-    fclose(file);
-}
-
-void showTopScores() {
-    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-    showAscii(ARQ_TOPSCORES);
-    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-    showAscii(ARQ_SCORES);
-    printf("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-}
-
-typedef struct No {
-    char nome[MAX_NOME];
-    int pontos;
-    struct No *next;
-} No;
-
-No *scoreList = NULL;
-
-void addScore (No **list, const char *nome, int pontos) {
-    No *novo = malloc(sizeof(No));
-    strcpy(novo->nome, nome);
-    novo->pontos = pontos;
-    novo->next = *list;
-    *list = novo;
-}
-
-void saveScore (No *list, const char *arquivo) {
-    FILE *file = fopen(arquivo, "a");
-
-    while (list) {
-        fprintf(file, "%s - %d pontos\n", list->nome, list->pontos);
-        list = list -> next;
-    }
-    fclose(file);
-}
-
 int main () {
     char jogador[MAX_NOME];
     int opcao;
@@ -224,12 +295,12 @@ int main () {
     do {
         opcao = showMenu(ARQ_MENU);
         if (opcao == 2) {
-            showTopScores(ARQ_TOPSCORES);
+            showTopScores();
             printf("\nPressione ENTER para voltar ao menu.");
             getchar();
         }
     } while (opcao != 1 && opcao != 3);
-    
+
     if (opcao == 3) {
         return 0;
     }
@@ -241,18 +312,14 @@ int main () {
     screenInit(1);
     keyboardInit();
     timerInit(FRAME_INTERVAL);
-
     initGame();
 
     while (lives > 0) {
         if (keyhit()) {
             char ch = readch();
-
             if (ch == ' ' && !player.isJumping) {
                 player.isJumping = 1;
                 player.jumpVelocity = JUMP_HEIGHT;
-            
-            //Tecla ESC
             } else if (ch == 27) {
                 break;
             }
@@ -265,11 +332,9 @@ int main () {
             drawGround();
             drawPlayer();
             drawLives();
-
-            for (int  i = 0; i < 3; i++) {
+            for (int i = 0; i < 3; i++) {
                 drawObstacle(&obstacles[i]);
             }
-
             drawScore();
             screenUpdate();
 
@@ -287,14 +352,12 @@ int main () {
     printf("FIM DE JOGO - SCORE: %d", score);
     screenUpdate();
 
-    addScore(&scoreList, jogador, score);
-    saveScore(scoreList, ARQ_SCORES);
+    saveNewScore(ARQ_TOPSCORES, jogador, score);
 
     sleep(3);
     timerDestroy();
     keyboardDestroy();
     screenDestroy();
-
     return 0;
 }
 
