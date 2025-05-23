@@ -41,8 +41,6 @@ int gameOver;
 int lives;
 
 
-
-
 void drawPlayer () {
     screenSetColor(CYAN, DARKGRAY);
     screenGotoxy(player.x, player.y);
