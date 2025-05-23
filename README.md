@@ -1,4 +1,4 @@
-# 🦖 Dino Run (Jogo no Terminal)
+# 🦖 Raptor Run (Jogo no Terminal)
 
 Um jogo estilo Dino Run (inspirado no Dino do Google Chrome) desenvolvido em linguagem C, rodando inteiramente no terminal com animações, pulo, obstáculos, colisões e sistema de pontuação com ranking ordenado.
 
