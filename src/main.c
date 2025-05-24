@@ -275,13 +275,23 @@ void updateObstacles () {
 
 
 
-int checkCollision () {
+int checkCollision() {
     for (int i = 0; i < 3; i++) {
-        if (obstacles[i].active && 
+        if (obstacles[i].active &&
             abs(obstacles[i].x - player.x) <= 1 &&
             abs(obstacles[i].y - player.y) <= 1) {
-                return 1;
-            }
+
+            lives--; 
+            obstacles[i].active = 0;
+
+            
+            drawLives();
+            drawScore();
+            screenUpdate();
+
+            usleep(300000); 
+            return 1;
+        }
     }
     return 0;
 }
@@ -336,13 +346,10 @@ int main () {
             drawScore();
             screenUpdate();
 
-            if (checkCollision()) {
-                lives--;
-                screenUpdate();
-                drawScore();
-            }
+           
+            checkCollision();
         }
-    }
+    }   
 
     screenClear();
     showAscii(ARQ_DEATH);
