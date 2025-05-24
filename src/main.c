@@ -13,6 +13,9 @@
 #define GRAVITY 1
 #define OBSTACLE_SPEED 2
 #define FRAME_INTERVAL 100
+int currentFrameInterval = FRAME_INTERVAL;
+enum GameState { WAITING_TO_START, RUNNING, GAME_OVER };
+enum GameState gameState;
 
 #define ARQ_WIN "src/files/win.txt"
 #define ARQ_DEATH "src/files/death.txt"
@@ -40,9 +43,31 @@ int score;
 int gameOver;
 int lives;
 
+typedef struct {
+    int x, y;
+    int active;
+} ExtraLife;
+
+ExtraLife extraLife = {0, 0, 0}; 
+
+void drawExtraLife() {
+    if (extraLife.active) {
+        if (score >= 30) {
+            screenSetColor(RED, WHITE);
+        } else {
+            screenSetColor(RED, DARKGRAY);
+        }
+        screenGotoxy(extraLife.x, extraLife.y);
+        printf("❤️");
+    }
+}
 
 void drawPlayer () {
-    screenSetColor(CYAN, DARKGRAY);
+    if (score >= 30) {
+        screenSetColor(BLACK, WHITE); // night mode dino
+    } else {
+        screenSetColor(CYAN, DARKGRAY); // normal
+    }
     screenGotoxy(player.x, player.y);
     printf("🦖");
 }
@@ -70,7 +95,11 @@ void drawLives() {
 }
 
 void drawGround () {
-    screenSetColor(GREEN, DARKGRAY);
+    if (score >= 30) {
+        screenSetColor(WHITE, BLACK); // night mode ground
+    } else {
+        screenSetColor(GREEN, DARKGRAY); // normal
+    }
     for (int x = MINX; x <= MAXX; x++) {
         screenGotoxy(x, GROUND_Y - 1);
         printf("_");
@@ -166,22 +195,42 @@ void saveNewScore(const char *arquivo, const char *nomeJogador, int pontos) {
 }
 
 
-void showAscii (const char *arquivo) {
-    FILE *file = fopen(arquivo, "r");
+void showAscii(const char *arquivo) {
+    No *lista = readScores(arquivo);
+    bubbleSort(&lista); // Sort by points, highest first
 
-    if (file == NULL) {
-        printf("Arquivo nao encontrado!\n");
-        return;
+    printf("\n%-15s | %s\n", "Nome", "Pontos");
+    printf("----------------------------\n");
+
+    No *current = lista;
+    int rank = 1;
+    while (current) {
+        // Color for Top 3
+        if (rank == 1) {
+            screenSetColor(YELLOW, DARKGRAY); // Gold for 1st
+        } else if (rank == 2) {
+            screenSetColor(GREEN, DARKGRAY);  // Silver for 2nd
+        } else if (rank == 3) {
+            screenSetColor(RED, DARKGRAY);    // Bronze for 3rd
+        } else {
+            screenSetColor(LIGHTGRAY, DARKGRAY); // Normal
+        }
+
+        printf("%-15s | %d\n", current->nome, current->pontos);
+
+        rank++;
+        current = current->next;
     }
+    screenSetColor(LIGHTGRAY, DARKGRAY); // Reset color after leaderboard
 
-    char linha[256];
-
-    while (fgets(linha, sizeof(linha), file)) {
-        printf("%s", linha);
+    // Free the list
+    while (lista) {
+        No *temp = lista;
+        lista = lista->next;
+        free(temp);
     }
-
-    fclose(file);
 }
+
 
 int showMenu(const char *arquivo) {
     FILE *file = fopen(arquivo, "r");
@@ -231,6 +280,12 @@ void initGame () {
     player.y = GROUND_Y - 1;
     player.isJumping = 0;
     player.jumpVelocity = 0;
+    gameState = WAITING_TO_START;
+    currentFrameInterval = FRAME_INTERVAL;
+    extraLife.active = 0;
+
+    timerInit(currentFrameInterval);
+
 
     for (int i = 0; i < 3; i++) {
         obstacles[i].active = 0;
@@ -264,12 +319,21 @@ void updateObstacles () {
             if(obstacles[i].x < MINX) {
                 obstacles[i].active = 0;
                 score++;
+                if (score % 10 == 0 && currentFrameInterval > 40) {
+                    currentFrameInterval -= 10;
+                    timerUpdateTimer(currentFrameInterval);
+                }
             } 
         } else if (rand() % 100 < 5) {
             obstacles[i].x = MAXX - 1;
             obstacles[i].y = GROUND_Y - 1;
             obstacles[i].active = 1;
         }
+    }
+    if (score > 0 && score % 10 == 0 && !extraLife.active && lives < 3) {
+    extraLife.active = 1;
+    extraLife.x = MAXX - 2;          
+    extraLife.y = GROUND_Y - 2;       
     }
 }
 
@@ -323,42 +387,86 @@ int main () {
     initGame();
 
     while (lives > 0) {
-        if (keyhit()) {
-            char ch = readch();
-            if (ch == ' ' && !player.isJumping) {
-                player.isJumping = 1;
-                player.jumpVelocity = JUMP_HEIGHT;
-            } else if (ch == 27) {
+    if (keyhit()) {
+    char ch = readch();
+    if (gameState == WAITING_TO_START) {
+        if (ch == ' ') {
+            gameState = RUNNING;
+        }
+    } else if (gameState == RUNNING) {
+        if (ch == ' ' && !player.isJumping) {
+            player.isJumping = 1;
+            player.jumpVelocity = JUMP_HEIGHT;
+        } else if (ch == 27) {
+            // Check if it's an arrow key or ESC
+            if (keyhit()) {
+                char ch2 = readch();
+                if (ch2 == '[' && keyhit()) {
+                    (void)readch();
+                    // Arrow keys: ch3 == 'A' (up), 'B' (down), 'C' (right), 'D' (left)
+                    // You can handle these if you want. For now, just ignore them.
+                }
+                // Any other sequence, ignore
+            } else {
+                // ESC pressed alone, quit
                 break;
             }
-        }
-
-        if (timerTimeOver()) {
-            screenClear();
-            updatePlayer();
-            updateObstacles();
-            drawGround();
-            drawPlayer();
-            drawLives();
-            for (int i = 0; i < 3; i++) {
-                drawObstacle(&obstacles[i]);
             }
-            drawScore();
-            screenUpdate();
-
-           
-            checkCollision();
+        // Ignore all other keys!
         }
-    }   
+    }
+
+    if (gameState == RUNNING && timerTimeOver()) {
+        screenClear();
+        updatePlayer();
+        updateObstacles();
+        if (extraLife.active) {
+            extraLife.x -= OBSTACLE_SPEED;
+            if (extraLife.x < MINX) {
+                extraLife.active = 0; // disappears if it goes off screen
+            }
+        }
+        drawGround();
+        drawPlayer();
+        drawLives();
+        for (int i = 0; i < 3; i++) {
+            drawObstacle(&obstacles[i]);
+        }
+        drawExtraLife();
+        drawScore();
+        screenUpdate();
+
+        checkCollision();
+        if (extraLife.active &&
+            abs(extraLife.x - player.x) <= 1 &&
+            abs(extraLife.y - player.y) <= 1) {
+            lives++;
+            if (lives > 4) lives = 4;
+            extraLife.active = 0;
+        }
+    } else if (gameState == WAITING_TO_START) {
+        // Optionally, draw the player and ground, plus a message like "Press SPACE to start"
+        screenClear();
+        drawGround();
+        drawPlayer();
+        drawLives();
+        drawScore();
+        screenGotoxy(MAXX / 2 - 10, GROUND_Y / 2);
+        printf("Pressione ESPAÇO para começar!");
+        screenUpdate();
+        usleep(20000); // slow loop to avoid high CPU
+    }
+}
+   
 
     screenClear();
     showAscii(ARQ_DEATH);
-    screenGotoxy(MAXX/2 - 5, GROUND_Y/2);
+    screenGotoxy(10, GROUND_Y);
     printf("FIM DE JOGO - SCORE: %d", score);
     screenUpdate();
-
+    
     saveNewScore(ARQ_TOPSCORES, jogador, score);
-
+    fflush(stdout);
     sleep(3);
     timerDestroy();
     keyboardDestroy();
